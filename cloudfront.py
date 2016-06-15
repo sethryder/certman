@@ -36,7 +36,7 @@ def updateCloudFrontDistributions(domain_objects, certificate_path):
         if latest_certificate['id'] != active_certificate:
             updated = updateDistributionCertificate(config['distribution_id'], latest_certificate['name'])
             if not updated:
-                logError("Unable to update certificate for" + primary_domain)
+                logError("Unable to update certificate for " + primary_domain)
     return True
 
 def listCertificates(primary_domain):
@@ -110,6 +110,7 @@ def updateDistributionCertificate(distribution_id, server_certificate_name):
         certificate = iam_client.get_server_certificate(ServerCertificateName=server_certificate_name)
         distribution = cloudfront_client.get_distribution(Id=distribution_id)
     except botocore.exceptions.ClientError as e:
+        logError(e)
         return False
 
     certificate_id = certificate['ServerCertificate']['ServerCertificateMetadata']['ServerCertificateId']
