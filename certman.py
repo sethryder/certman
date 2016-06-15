@@ -5,7 +5,7 @@ from helpers import *
 from cloudfront import *
 from certbot import *
 
-config_file = "/Users/sethryder/dev/temp/certman.conf"
+config_file = "/etc/certman.conf"
 config = loadConfig(config_file)
 domain_objects = loadDomainConfigs(config['domain_config_directory'])
 

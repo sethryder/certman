@@ -28,7 +28,7 @@ def updateCloudFrontDistributions(domain_objects, certificate_path):
     return True
 
 def listCertificates(primary_domain):
-    iam_client = boto3.client('iam')
+    iam_client = createAWSClient('iam')
     response = iam_client.list_server_certificates(
         PathPrefix='/cloudfront/' + primary_domain + '/'
     )
@@ -39,7 +39,7 @@ def listCertificates(primary_domain):
         return False
 
 def uploadCertificate(primary_domain, certificate_path):
-    iam_client = boto3.client('iam')
+    iam_client = createAWSClient('iam')
     primary_path = certificate_path + '/' + primary_domain
 
     if os.path.isfile(primary_path + '/cert.pem'):
@@ -79,7 +79,7 @@ def uploadCertificate(primary_domain, certificate_path):
         return False
 
 def deleteCertificate(server_certificate_id):
-    iam_client = boto3.client('iam')
+    iam_client = createAWSClient('iam')
 
     try:
         response = iam_client.delete_server_certificate(
@@ -91,8 +91,8 @@ def deleteCertificate(server_certificate_id):
 
 
 def updateDistributionCertificate(distribution_id, server_certificate_name):
-    cloudfront_client = boto3.client('cloudfront')
-    iam_client = boto3.client('iam')
+    cloudfront_client = createAWSClient('cloudfront')
+    iam_client = createAWSClient('iam')
 
     try:
         certificate = iam_client.get_server_certificate(ServerCertificateName=server_certificate_name)
@@ -126,7 +126,7 @@ def updateDistributionCertificate(distribution_id, server_certificate_name):
     #TODO: verify that the domains match before enabling
 
 def getActiveCertficateID(distribution_id):
-    cloudfront_client = boto3.client('cloudfront')
+    cloudfront_client = createAWSClient('cloudfront')
 
     try:
         distribution = cloudfront_client.get_distribution(Id=distribution_id)
@@ -153,7 +153,7 @@ def getCertificateName(primary_domain, certificate_id):
 
 def getLastestCertificate(primary_domain):
     latest_time = 0
-    iam_client = boto3.client('iam')
+    iam_client = createAWSClient('iam')
 
     response = iam_client.list_server_certificates(
         PathPrefix='/cloudfront/' + primary_domain + '/'

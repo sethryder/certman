@@ -1,5 +1,12 @@
 import yaml, os, sys, logging, hashlib, json
 
+def createAWSClient(service):
+    aws_client = boto3.client(
+        service,
+        aws_access_key_id=config['aws_access_key_id'],
+        aws_secret_access_key=config['aws_secret_access_key'])
+    return aws_client
+
 def generateHash(primary_domain, additional_domains = None):
     domain_object = {}
     domain_object['primary'] = primary_domain
