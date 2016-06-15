@@ -116,7 +116,7 @@ def updateDistributionCertificate(distribution_id, server_certificate_name):
 
     if distribution['Distribution']:
         distribution_config = distribution['Distribution']['DistributionConfig']
-        if distribution_config['ViewerCertificate']['IAMCertificateId']:
+        if 'IAMCertificateId' in distribution_config['ViewerCertificate']:
             if distribution_config['ViewerCertificate']['IAMCertificateId'] == certificate_id:
                 return True
         distribution_config['ViewerCertificate']['IAMCertificateId'] = certificate_id
@@ -146,7 +146,7 @@ def getActiveCertficateID(distribution_id):
         return False
 
     distribution_config = distribution['Distribution']['DistributionConfig']
-    if distribution_config['ViewerCertificate']['IAMCertificateId']:
+    if 'IAMCertificateId' in distribution_config['ViewerCertificate']:
         certificate_id = distribution_config['ViewerCertificate']['IAMCertificateId']
         return certificate_id
     else:
