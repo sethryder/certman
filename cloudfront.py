@@ -8,8 +8,9 @@ def uploadCloudFrontCertificates(domain_objects, certificate_path):
             certificate_hash = generateCloudFrontHash(primary_domain, certificate_path)
             uploaded_certificates = listCertificates(primary_domain)
 
-            for uploaded_certificate in uploaded_certificates:
-                uploaded = re.search(certificate_hash, uploaded_certificate['ServerCertificateName'])
+            if uploaded_certificates:
+                for uploaded_certificate in uploaded_certificates:
+                    uploaded = re.search(certificate_hash, uploaded_certificate['ServerCertificateName'])
 
             if not uploaded:
                 upload_result = uploadCertificate(primary_domain, certificate_path)
