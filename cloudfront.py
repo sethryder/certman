@@ -120,6 +120,8 @@ def updateDistributionCertificate(distribution_id, server_certificate_name):
         if 'IAMCertificateId' in distribution_config['ViewerCertificate']:
             if distribution_config['ViewerCertificate']['IAMCertificateId'] == certificate_id:
                 return True
+        if 'CloudFrontDefaultCertificate' in distribution_config['ViewerCertificate']:
+            del distribution_config['ViewerCertificate']['CloudFrontDefaultCertificate']
         distribution_config['ViewerCertificate']['IAMCertificateId'] = certificate_id
         distribution_config['ViewerCertificate']['Certificate'] = certificate_id
         distribution_config['ViewerCertificate']['CertificateSource'] = 'iam'
