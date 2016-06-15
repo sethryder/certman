@@ -134,6 +134,7 @@ def updateDistributionCertificate(distribution_id, server_certificate_name):
         )
         return True
     except botocore.exceptions.ClientError as e:
+        logError(e)
         return False
 
     #TODO: verify that the domains match before enabling
