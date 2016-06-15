@@ -84,7 +84,7 @@ def uploadCertificate(primary_domain, certificate_path):
             PrivateKey=privkey,
             CertificateChain=chain
         )
-        return response['ServerCertificateId']
+        return response['ServerCertificateMetadata']['ServerCertificateId']
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == 'EntityAlreadyExists':
             logError("Certificate already exists")
