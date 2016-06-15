@@ -1,4 +1,4 @@
-import yaml, os, sys, logging, hashlib, json
+import boto3, yaml, os, sys, logging, hashlib, json
 
 def createAWSClient(service):
     aws_client = boto3.client(
