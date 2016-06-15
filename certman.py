@@ -1,60 +1,49 @@
 #!/usr/bin/python -W ignore::DeprecationWarning
 
-import yaml, os, sys, logging
-from subprocess import Popen, PIPE
+import getopt, sys
 from helpers import *
+from cloudfront import *
+from certbot import *
 
-certbot_binary_path = "/Users/sethryder/dev/certman/test.sh"
-domain_config_directory = "/Users/sethryder/dev/temp/conf"
-hash_file_directory = '/Users/sethryder/dev/temp/hash'
+config_file = "/Users/sethryder/dev/temp/certman.conf"
+config = loadConfig(config_file)
+domain_objects = loadDomainConfigs(config['domain_config_directory'])
 
-def generateCertificates():
-
-    domain_objects = loadConfigs(domain_config_directory)
-
-    for primary_domain, config in domain_objects.iteritems():
-        if 'additional_domains' in config:
-            config_hash = generateHash(primary_domain, config['additional_domains'])
+def main():
+    ran = False
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hgrud", [
+          "generate-certificates",
+          "renew-certificates",
+          "upload-certificates",
+          "update-cloudfront-distributions",
+          "help"])
+    except getopt.GetoptError, err:
+        print str(err) # will print something like "option -z not recognized"
+        usage()
+        sys.exit(2)
+    for opt, arg in opts:
+        ran = True
+        if opt in ("-a", "-all"):
+           generateCertificates(config, domain_objects)
+           renewCertificates(config['certbot_binary_path'], config['certbot_arguments'])
+           uploadCloudFrontCertificates(domain_objects, config['certbot_certificate_path'])
+           updateCloudFrontDistributions(domain_objects, config['certbot_certificate_path'])
+        elif opt in ("-g", "--generate-certificates"):
+           generateCertificates(config, domain_objects)
+        elif opt in ("-r", "--renew-certificates"):
+           renewCertificates(config['certbot_binary_path'], config['certbot_arguments'])
+        elif opt in ("-u", "--upload-certificates"):
+           uploadCloudFrontCertificates(domain_objects, config['certbot_certificate_path'])
+        elif opt in ("-d", "--update-cloudfront-distributions"):
+           updateCloudFrontDistributions(domain_objects, config['certbot_certificate_path'])
+        elif opt in ("-h", "--help"):
+            usage()
         else:
-            config_hash = generateHash(primary_domain)
+           assert False, "unhandled option"
 
-        saved_hash = getSavedHash(primary_domain, hash_file_directory)
+    if not ran:
+        usage()
 
-        if saved_hash == config_hash:
-            print "Making some certs!"
-
-            command = certbot_binary_path + ' certonly --expand --agree-tos \
-            --non-interactive -c /opt/letsencrypt/letsencrypt.ini'
-
-            command = command + " -d " + primary_domain
-
-            if 'additional_domains' in config:
-                for additional_domain in config['additional_domains']:
-                    command = command + ' -d ' + additional_domain
-
-            p = Popen(command, shell=True, stdout=PIPE)
-            output = p.communicate()[0]
-
-            if p.returncode != 0:
-                print "Something went wrong."
-            else:
-                print "All good!"
-                setSavedHash(primary_domain, hash_file_directory, config_hash)
-        else:
-            print "Hashes matches, moving on!"
-
-def renewCertificates():
-
-    command = certbot_binary_path + ' renew --expand --agree-tos\
-    --non-interactive -c /opt/letsencrypt/letsencrypt.ini'
-
-    p = Popen(command, shell=True, stdout=PIPE)
-    output = p.communicate()[0]
-
-    if p.returncode != 0:
-        print "Something went wrong."
-    else:
-        print "All good!"
-
-generateCertificates()
-#renewCertificates()
+if __name__ == "__main__":
+    main()

@@ -8,6 +8,18 @@ def generateHash(primary_domain, additional_domains = None):
     md5Hash = hashlib.md5(json.dumps(domain_object, sort_keys=True)).hexdigest()
     return md5Hash
 
+def generateCloudFrontHash(primary_domain, certificate_path):
+    primary_path = certificate_path + '/' + primary_domain
+
+    if os.path.isfile(primary_path + '/cert.pem'):
+        with open(primary_path + '/cert.pem') as cert_file:
+            cert = cert_file.read()
+            cert_hash = hashlib.md5(cert).hexdigest()
+        return cert_hash
+    else:
+        logError('Cert file does not exist.')
+        return False
+
 def getSavedHash(primary_domain, hash_file_directory):
     hash_file_path = hash_file_directory + '/' + primary_domain + '.hash'
 
@@ -41,7 +53,22 @@ def getLastestCertificateTime(primary_domain, certificate_directory):
         return False
 
 
-def loadConfigs(config_directory):
+def logError(error):
+    print error
+
+def logMessage(message):
+    print message
+
+def loadConfig(config_file):
+    if os.path.isfile(config_file):
+        with open(config_file) as config_file:
+            config = yaml.load(config_file)
+            return config
+    else:
+        logError("Unable to open primary config file.")
+        return False
+
+def loadDomainConfigs(config_directory):
     configs = {}
     if os.path.isdir(config_directory):
         os.chdir(config_directory)
@@ -64,3 +91,13 @@ def loadConfigs(config_directory):
     else:
         logError("Config directory does not exist.")
     return configs
+
+def usage():
+    print 'Usage: certman.py (option)'
+    print ''
+    print '-a, --all                                Run/do everything.'
+    print '-g, --generate-certificates              Generate SSL certificates.'
+    print '-r, --renew-certificates                 Renew SSL certificates.'
+    print '-u, --upload-certificates                Upload SSL certificates to CloudFront.'
+    print '-d, --update-cloudfront-distributions    Update CloudFront distributions with the latest SSL certificate.'
+    print ''
