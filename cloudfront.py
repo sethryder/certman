@@ -2,18 +2,29 @@ import boto3, botocore, datetime, hashlib, json, os, re, time
 from helpers import *
 
 def uploadCloudFrontCertificates(domain_objects, certificate_path):
+    logMessage("Starting CloudFront upload process")
     for primary_domain, config in domain_objects.iteritems():
+        logMessage(primary_domain + ": Starting upload check")
         is_uploaded = False
         if config['distribution_id']:
+            logMessage(primary_domain + ": Distribution_id set")
             certificate_hash = generateCloudFrontHash(primary_domain, certificate_path)
             uploaded_certificates = listCertificates(primary_domain)
 
             if uploaded_certificates:
+                logMessage(primary_domain + ": Checking if SSL has been uploaded")
                 for uploaded_certificate in uploaded_certificates:
                     uploaded = re.search(certificate_hash, uploaded_certificate['ServerCertificateName'])
 
                 if not uploaded:
+                    logMessage(primary_domain + ": Uploading SSL")
                     upload_result = uploadCertificate(primary_domain, certificate_path)
+                else:
+                    logMessage(primary_domain + ": SSL already exists in IAM")
+            else:
+                logMessage(primary_domain + ": Uploading SSL")
+                upload_result = uploadCertificate(primary_domain, certificate_path)
+        logMessage(primary_domain + ": Finished upload process")
 
     return True
 
