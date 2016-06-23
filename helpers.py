@@ -57,10 +57,24 @@ def getLastestCertificateTime(primary_domain, certificate_directory):
         return False
 
 
+def initLogger(error_log, general_log):
+    error_hdlr = logging.FileHandler(error_log)
+    hdlr = logging.FileHandler(general_log)
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    hdlr.setFormatter(formatter)
+    error_hdlr.setFormatter(formatter)
+    logger.addHandler(hdlr)
+    error_logger.addHandler(error_hdlr)
+    error_logger.setLevel(logging.WARNING)
+    logger.setLevel(logging.DEBUG)
+
 def logError(error):
     print error
 
 def logMessage(message):
+    print message
+
+def logVerbose(message):
     print message
 
 def loadConfig(config_file):
@@ -104,4 +118,5 @@ def usage():
     print '-r, --renew-certificates                 Renew SSL certificates.'
     print '-u, --upload-certificates                Upload SSL certificates to CloudFront.'
     print '-d, --update-cloudfront-distributions    Update CloudFront distributions with the latest SSL certificate.'
+    print '-w, --add-well-known                     Add ./well-known origin and behavior to CloudFront distribution.'
     print ''

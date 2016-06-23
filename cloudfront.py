@@ -25,6 +25,7 @@ def uploadCloudFrontCertificates(domain_objects, certificate_path):
                 logMessage(primary_domain + ": Uploading SSL")
                 upload_result = uploadCertificate(primary_domain, certificate_path)
         logMessage(primary_domain + ": Finished upload process")
+    logMessage("Finished upload process")
 
     return True
 
@@ -38,6 +39,168 @@ def updateCloudFrontDistributions(domain_objects, certificate_path):
             if not updated:
                 logError("Unable to update certificate for " + primary_domain)
     return True
+
+def updateCloundFrontWellKnown(domain_objects, ssl_host):
+    for primary_domain, config in domain_objects.iteritems():
+        if config['distribution_id']:
+            addWellKnownOrigin(config['distribution_id'], ssl_host)
+            addWellKnownBehavior(config['distribution_id'])
+    return True
+
+def addWellKnownOrigin(distribution_id, ssl_host):
+    cloudfront_client = createAWSClient('cloudfront')
+
+    ssl_origin = {
+    	'OriginPath': '',
+        'CustomOriginConfig': {
+    		'OriginProtocolPolicy': 'http-only',
+    		'HTTPPort': 80,
+    		'OriginSslProtocols': {
+    		    'Items': ['TLSv1', 'TLSv1.1', 'TLSv1.2'],
+    		    'Quantity': 3
+    		},
+    		'HTTPSPort': 443
+    	},
+        'CustomHeaders': {
+    		'Quantity': 0
+    	},
+    	'Id': 'Certbot-Server',
+        'DomainName': ssl_host
+    }
+
+    logMessage(distribution_id +": Checking for Certbot Server origin")
+
+    try:
+        distribution = cloudfront_client.get_distribution(Id=distribution_id)
+    except botocore.exceptions.ClientError as e:
+        logError(e)
+        return False
+
+    if distribution['Distribution']:
+        has_ssl_origin = False
+        correct_ssl_origin = False
+        distribution_config = distribution['Distribution']['DistributionConfig']
+        for origin in distribution_config['Origins']['Items']:
+            if origin['Id'] == 'Certbot-Server':
+                has_ssl_origin = True
+                if origin['DomainName'] != ssl_host:
+                    logMessage(distribution_id +": Certbot Server origin domain incorrect, updating")
+                    origin['DomainName'] = ssl_host
+                    try:
+                        response = cloudfront_client.update_distribution(
+                            DistributionConfig=distribution_config,
+                            Id=distribution_id,
+                            IfMatch=distribution['ETag'],
+                        )
+                        logMessage(distribution_id +": Certbot Server origin domain updated")
+                        return True
+                    except botocore.exceptions.ClientError as e:
+                        logError(e)
+                        return False
+
+        if has_ssl_origin == False:
+            logMessage(distribution_id +": Certbot Server origin does not exist, adding")
+            distribution_config['Origins']['Items'].append(ssl_origin)
+            origin_count = len(distribution_config['Origins']['Items'])
+            distribution_config['Origins']['Quantity'] = origin_count
+
+            try:
+                response = cloudfront_client.update_distribution(
+                    DistributionConfig=distribution_config,
+                    Id=distribution_id,
+                    IfMatch=distribution['ETag'],
+                )
+                logMessage(distribution_id +": Certbot Server origin added")
+                return True
+            except botocore.exceptions.ClientError as e:
+                logError(e)
+                return False
+        else:
+            logMessage(distribution_id +": Certbot Server origin already exists")
+            return True
+
+def addWellKnownBehavior(distribution_id):
+    cloudfront_client = createAWSClient('cloudfront')
+
+    well_known_behavior = {
+        'TrustedSigners': {
+            'Enabled': False,
+            'Quantity': 0
+        },
+        'TargetOriginId': 'Certbot-Server',
+        'ViewerProtocolPolicy': 'allow-all',
+        'ForwardedValues': {
+            'Headers': {
+                'Quantity': 0
+            },
+            'Cookies': {
+                'Forward': 'none'
+            },
+            'QueryString': False
+        },
+        'MaxTTL': 0,
+        'PathPattern': './well-known/acme-challenge',
+        'SmoothStreaming': False,
+        'DefaultTTL': 0,
+        'AllowedMethods': {
+            'Items': ['HEAD', 'GET'],
+            'CachedMethods': {
+                'Items': ['HEAD', 'GET'],
+                'Quantity': 2
+            },
+            'Quantity': 2
+        },
+        'MinTTL': 0,
+        'Compress': False
+    }
+
+    try:
+        distribution = cloudfront_client.get_distribution(Id=distribution_id)
+    except botocore.exceptions.ClientError as e:
+        logError(e)
+        return False
+
+    if distribution['Distribution']:
+        has_behavior = False
+        update_distribution = False
+
+        distribution_config = distribution['Distribution']['DistributionConfig']
+
+        if distribution_config['CacheBehaviors']['Quantity'] > 0:
+            for behavior in distribution_config['CacheBehaviors']['Items']:
+                if behavior['PathPattern'] == './well-known/acme-challenge':
+                    has_behavior = True
+                    if behavior['TargetOriginId'] != 'Certbot-Server':
+                        behavior['TargetOriginId'] = 'Certbot-Server'
+                        update_distribution = True
+            if has_behavior == False:
+                distribution_config['CacheBehaviors']['Items'].append(well_known_behavior)
+                origin_count = len(distribution_config['CacheBehaviors']['Items'])
+                distribution_config['CacheBehaviors']['Quantity'] = origin_count
+                update_distribution = True
+        else:
+            distribution_config['CacheBehaviors']['Items'] = [well_known_behavior]
+            origin_count = len(distribution_config['CacheBehaviors']['Items'])
+            distribution_config['CacheBehaviors']['Quantity'] = origin_count
+            update_distribution = True
+
+        if update_distribution:
+            try:
+                response = cloudfront_client.update_distribution(
+                    DistributionConfig=distribution_config,
+                    Id=distribution_id,
+                    IfMatch=distribution['ETag'],
+                )
+                logMessage(distribution_id +": Certbot Server behavior updated")
+                return True
+            except botocore.exceptions.ClientError as e:
+                logError(e)
+                return False
+        return True
+    else:
+        return False
+
+
 
 def listCertificates(primary_domain):
     iam_client = createAWSClient('iam')
@@ -188,5 +351,3 @@ def getLastestCertificate(primary_domain):
         return certificate
     else:
         return False
-
-#def addWellKnownOrigin(distribution_id):

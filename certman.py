@@ -9,10 +9,10 @@ config_file = "/etc/certman.conf"
 config = loadConfig(config_file)
 domain_objects = loadDomainConfigs(config['domain_config_directory'])
 
-def main():
+def certbot():
     ran = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hgrud", [
+        opts, args = getopt.getopt(sys.argv[1:], "hgrudw", [
           "generate-certificates",
           "renew-certificates",
           "upload-certificates",
@@ -25,18 +25,20 @@ def main():
     for opt, arg in opts:
         ran = True
         if opt in ("-a", "-all"):
-           generateCertificates(config, domain_objects)
-           renewCertificates(config['certbot_binary_path'], config['certbot_arguments'])
-           uploadCloudFrontCertificates(domain_objects, config['certbot_certificate_path'])
-           updateCloudFrontDistributions(domain_objects, config['certbot_certificate_path'])
+            generateCertificates(config, domain_objects)
+            renewCertificates(config['certbot_binary_path'], config['certbot_arguments'])
+            uploadCloudFrontCertificates(domain_objects, config['certbot_certificate_path'])
+            updateCloudFrontDistributions(domain_objects, config['certbot_certificate_path'])
         elif opt in ("-g", "--generate-certificates"):
-           generateCertificates(config, domain_objects)
+            generateCertificates(config, domain_objects)
         elif opt in ("-r", "--renew-certificates"):
-           renewCertificates(config['certbot_binary_path'], config['certbot_arguments'])
+            renewCertificates(config['certbot_binary_path'], config['certbot_arguments'])
         elif opt in ("-u", "--upload-certificates"):
-           uploadCloudFrontCertificates(domain_objects, config['certbot_certificate_path'])
+            uploadCloudFrontCertificates(domain_objects, config['certbot_certificate_path'])
         elif opt in ("-d", "--update-cloudfront-distributions"):
-           updateCloudFrontDistributions(domain_objects, config['certbot_certificate_path'])
+            updateCloudFrontDistributions(domain_objects, config['certbot_certificate_path'])
+        elif opt in ("-w", "--add-well-known"):
+            updateCloundFrontWellKnown(domain_objects, 'hc-ssl-p-www-1.ue1.gcii.net')
         elif opt in ("-h", "--help"):
             usage()
         else:
@@ -46,4 +48,4 @@ def main():
         usage()
 
 if __name__ == "__main__":
-    main()
+    certbot()
