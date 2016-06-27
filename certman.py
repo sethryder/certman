@@ -25,6 +25,7 @@ def certbot():
     for opt, arg in opts:
         ran = True
         if opt in ("-a", "--all"):
+            updateCloundFrontWellKnown(domain_objects, config['certbot_server'])
             generateCertificates(config, domain_objects)
             renewCertificates(config['certbot_binary_path'], config['certbot_arguments'])
             uploadCloudFrontCertificates(domain_objects, config['certbot_certificate_path'])
@@ -38,7 +39,7 @@ def certbot():
         elif opt in ("-d", "--update-cloudfront-distributions"):
             updateCloudFrontDistributions(domain_objects, config['certbot_certificate_path'])
         elif opt in ("-w", "--add-well-known"):
-            updateCloundFrontWellKnown(domain_objects, 'hc-ssl-p-www-1.ue1.gcii.net')
+            updateCloundFrontWellKnown(domain_objects, config['certbot_server'])
         elif opt in ("-h", "--help"):
             usage()
         else:
