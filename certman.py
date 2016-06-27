@@ -12,7 +12,7 @@ domain_objects = loadDomainConfigs(config['domain_config_directory'])
 def certbot():
     ran = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hgrudw", [
+        opts, args = getopt.getopt(sys.argv[1:], "ahgrudw", [
           "generate-certificates",
           "renew-certificates",
           "upload-certificates",
@@ -24,7 +24,7 @@ def certbot():
         sys.exit(2)
     for opt, arg in opts:
         ran = True
-        if opt in ("-a", "-all"):
+        if opt in ("-a", "--all"):
             generateCertificates(config, domain_objects)
             renewCertificates(config['certbot_binary_path'], config['certbot_arguments'])
             uploadCloudFrontCertificates(domain_objects, config['certbot_certificate_path'])
