@@ -40,7 +40,7 @@ def updateCloudFrontDistributions(domain_objects, certificate_path):
                 logError("Unable to update certificate for " + primary_domain)
     return True
 
-def updateCloundFrontWellKnown(domain_objects, ssl_host):
+def updateCloudFrontWellKnown(domain_objects, ssl_host):
     for primary_domain, config in domain_objects.iteritems():
         if config['distribution_id']:
             addWellKnownOrigin(config['distribution_id'], ssl_host)
