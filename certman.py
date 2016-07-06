@@ -4,6 +4,7 @@ import getopt, sys
 from helpers import *
 from cloudfront import *
 from certbot import *
+import logging
 
 config_file = "/etc/certman.conf"
 config = loadConfig(config_file)
@@ -12,7 +13,7 @@ domain_objects = loadDomainConfigs(config['domain_config_directory'])
 def certbot():
     ran = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "ahgrudw", [
+        opts, args = getopt.getopt(sys.argv[1:], "ahgrudwv:", [
           "generate-certificates",
           "renew-certificates",
           "upload-certificates",
@@ -40,6 +41,10 @@ def certbot():
             updateCloudFrontDistributions(domain_objects, config['certbot_certificate_path'])
         elif opt in ("-w", "--add-well-known"):
             updateCloudFrontWellKnown(domain_objects, config['certbot_server'])
+        elif opt in ("-l", "--list"):
+            cert_info = listCertificates()
+            if cert_info != False:
+                print cert_info
         elif opt in ("-h", "--help"):
             usage()
         else:
