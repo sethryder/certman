@@ -13,11 +13,13 @@ domain_objects = loadDomainConfigs(config['domain_config_directory'])
 def certbot():
     ran = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "ahgrudwv:", [
+        opts, args = getopt.getopt(sys.argv[1:], "agrudwlh", [
+          "all", 
           "generate-certificates",
           "renew-certificates",
           "upload-certificates",
           "update-cloudfront-distributions",
+          "list",
           "help"])
     except getopt.GetoptError, err:
         print str(err) # will print something like "option -z not recognized"
