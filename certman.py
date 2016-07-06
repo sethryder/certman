@@ -44,9 +44,12 @@ def certbot():
         elif opt in ("-w", "--add-well-known"):
             updateCloudFrontWellKnown(domain_objects, config['certbot_server'])
         elif opt in ("-l", "--list"):
-            cert_info = listCertificates()
-            if cert_info != False:
-                print cert_info
+            for domain in domain_objects.keys():
+                certs_info = listCertificates(domain)
+                print("%s: " % domain)
+                for i in certs_info:
+                    for k,v in i.iteritems():
+                       print("  %s: %s" % (k,v))
         elif opt in ("-h", "--help"):
             usage()
         else:
