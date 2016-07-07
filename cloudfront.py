@@ -1,10 +1,10 @@
-import boto3, botocore, datetime, hashlib, json, os, re, time
+import boto3, botocore, datetime, hashlib, json, os, re, time, logging
 from helpers import *
 
 def uploadCloudFrontCertificates(domain_objects, certificate_path):
     logMessage("Starting CloudFront upload process")
     for primary_domain, config in domain_objects.iteritems():
-        logMessage(primary_domain + ": Starting upload check")
+        logMessage("%s: Starting upload check" % primary_domain)
         is_uploaded = False
         if config['distribution_id']:
             logMessage(primary_domain + ": Distribution_id set")
