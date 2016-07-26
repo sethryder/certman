@@ -18,4 +18,5 @@ Full report
 $full_report
 
 ------------
+
 Thank you for using certman!
