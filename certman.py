@@ -1,6 +1,6 @@
 #!/usr/bin/python -W ignore::DeprecationWarning
 
-import getopt, sys
+import getopt, sys, logging
 from helpers import *
 from cloudfront import *
 from certbot import *
@@ -14,11 +14,13 @@ def certbot():
     ran = False
     try:
         opts, args = getopt.getopt(sys.argv[1:], "achgrudw", [
+          "all",
           "check-certificates",
           "generate-certificates",
           "renew-certificates",
           "upload-certificates",
           "update-cloudfront-distributions",
+          "list",
           "help"])
     except getopt.GetoptError, err:
         print str(err) # will print something like "option -z not recognized"
@@ -46,6 +48,13 @@ def certbot():
             updateCloudFrontDistributions(domain_objects, config['certbot_certificate_path'])
         elif opt in ("-w", "--add-well-known"):
             updateCloudFrontWellKnown(domain_objects, config['certbot_server'])
+        elif opt in ("-l", "--list"):
+            for domain in domain_objects.keys():
+                certs_info = listCertificates(domain)
+                print("%s: " % domain)
+                for i in certs_info:
+                    for k,v in i.iteritems():
+                       print("  %s: %s" % (k,v))
         elif opt in ("-h", "--help"):
             usage()
         else:
