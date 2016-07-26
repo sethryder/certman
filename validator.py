@@ -51,8 +51,8 @@ def buildCheckReport(results, template_directory):
                 single_domain_report.append("- " + domain + " - Passed")
             else:
                 total_failed = total_failed + 1
-                single_domain_report.append("- " + domain + " - Error: " + result)
-                problemed_ssls.append("- " + domain + " - Error: " + result)
+                single_domain_report.append("- " + domain + " - Error: " + str(result))
+                problemed_ssls.append("- " + domain + " - Error: " + str(result))
 
         d = { 'primary_domain': k, 'domains':'\n'.join(single_domain_report) }
         result = src.substitute(d)
