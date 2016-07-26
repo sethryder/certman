@@ -114,6 +114,7 @@ def usage():
     print 'Usage: certman.py (option)'
     print ''
     print '-a, --all                                Run/do everything.'
+    print '-c, --check-certificates                 Check and validate all known SSL certificates.'
     print '-g, --generate-certificates              Generate SSL certificates.'
     print '-r, --renew-certificates                 Renew SSL certificates.'
     print '-u, --upload-certificates                Upload SSL certificates to CloudFront.'

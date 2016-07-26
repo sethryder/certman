@@ -4,6 +4,7 @@ import getopt, sys
 from helpers import *
 from cloudfront import *
 from certbot import *
+from validator import *
 
 config_file = "/etc/certman.conf"
 config = loadConfig(config_file)
@@ -12,7 +13,8 @@ domain_objects = loadDomainConfigs(config['domain_config_directory'])
 def certbot():
     ran = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "ahgrudw", [
+        opts, args = getopt.getopt(sys.argv[1:], "achgrudw", [
+          "check-certificates",
           "generate-certificates",
           "renew-certificates",
           "upload-certificates",
@@ -30,6 +32,10 @@ def certbot():
             renewCertificates(config['certbot_binary_path'], config['certbot_arguments'])
             uploadCloudFrontCertificates(domain_objects, config['certbot_certificate_path'])
             updateCloudFrontDistributions(domain_objects, config['certbot_certificate_path'])
+        elif opt in ("-c", "--check-certificates"):
+            results = checkCertificates(domain_objects, config)
+            report = buildCheckReport(results, config['template_directory'])
+            print report
         elif opt in ("-g", "--generate-certificates"):
             generateCertificates(config, domain_objects)
         elif opt in ("-r", "--renew-certificates"):
