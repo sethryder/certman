@@ -4,9 +4,9 @@ from helpers import *
 def uploadCloudFrontCertificates(domain_objects, certificate_path):
     logMessage("Starting CloudFront upload process")
     for primary_domain, config in domain_objects.iteritems():
-        logMessage("%s: Starting upload check" % primary_domain)
         is_uploaded = False
-        if distribution_id in config:
+        if 'distribution_id' in config:
+            logMessage("%s: Starting upload check" % primary_domain)
             logMessage(primary_domain + ": Distribution_id set")
             certificate_hash = generateCloudFrontHash(primary_domain, certificate_path)
             uploaded_certificates = listCertificates(primary_domain)
@@ -24,14 +24,14 @@ def uploadCloudFrontCertificates(domain_objects, certificate_path):
             else:
                 logMessage(primary_domain + ": Uploading SSL")
                 upload_result = uploadCertificate(primary_domain, certificate_path)
-        logMessage(primary_domain + ": Finished upload process")
+            logMessage(primary_domain + ": Finished upload process")
     logMessage("Finished upload process")
 
     return True
 
 def updateCloudFrontDistributions(domain_objects, certificate_path):
     for primary_domain, config in domain_objects.iteritems():
-        if distribution_id in config:
+        if 'distribution_id' in config:
             latest_certificate = getLastestCertificate(primary_domain)
             active_certificate = getActiveCertficateID(config['distribution_id'])
 
