@@ -6,7 +6,7 @@ def uploadCloudFrontCertificates(domain_objects, certificate_path):
     for primary_domain, config in domain_objects.iteritems():
         logMessage("%s: Starting upload check" % primary_domain)
         is_uploaded = False
-        if config['distribution_id']:
+        if distribution_id in config:
             logMessage(primary_domain + ": Distribution_id set")
             certificate_hash = generateCloudFrontHash(primary_domain, certificate_path)
             uploaded_certificates = listCertificates(primary_domain)
@@ -31,13 +31,14 @@ def uploadCloudFrontCertificates(domain_objects, certificate_path):
 
 def updateCloudFrontDistributions(domain_objects, certificate_path):
     for primary_domain, config in domain_objects.iteritems():
-        latest_certificate = getLastestCertificate(primary_domain)
-        active_certificate = getActiveCertficateID(config['distribution_id'])
+        if distribution_id in config:
+            latest_certificate = getLastestCertificate(primary_domain)
+            active_certificate = getActiveCertficateID(config['distribution_id'])
 
-        if latest_certificate['id'] != active_certificate:
-            updated = updateDistributionCertificate(config['distribution_id'], latest_certificate['name'])
-            if not updated:
-                logError("Unable to update certificate for " + primary_domain)
+            if latest_certificate['id'] != active_certificate:
+                updated = updateDistributionCertificate(config['distribution_id'], latest_certificate['name'])
+                if not updated:
+                    logError("Unable to update certificate for " + primary_domain)
     return True
 
 def updateCloudFrontWellKnown(domain_objects, ssl_host):
