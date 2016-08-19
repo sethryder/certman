@@ -20,7 +20,7 @@ Built to help make managing Lets Encrypt certificates easier on Cloudfront. Thou
 git clone https://github.com/sethryder/certman.git
 cd certman
 pip install -r requirements.txt
-mv certman-sample.conf /etc/certman.conf
+mv config/certman-sample.conf /etc/certman.conf
 ```
 
 ## Config
