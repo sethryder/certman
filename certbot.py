@@ -16,7 +16,7 @@ def generateCertificates(config_object, domain_objects):
         saved_hash = getSavedHash(primary_domain, hash_file_directory)
 
         if saved_hash != config_hash:
-            print "Making some certs!"
+            print primary_domain + ": Generating certificate(s)"
 
             command = certbot_binary_path + ' certonly ' + certbot_arguments
             command = command + " -d " + primary_domain
