@@ -43,7 +43,7 @@ def updateCloudFrontDistributions(domain_objects, certificate_path):
 
 def updateCloudFrontWellKnown(domain_objects, ssl_host):
     for primary_domain, config in domain_objects.iteritems():
-        if config['distribution_id']:
+        if 'distribution_id' in config:
             addWellKnownOrigin(config['distribution_id'], ssl_host)
             addWellKnownBehavior(config['distribution_id'])
     return True
