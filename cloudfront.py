@@ -140,7 +140,7 @@ def addWellKnownBehavior(distribution_id):
             'QueryString': False
         },
         'MaxTTL': 0,
-        'PathPattern': '/.well-known/acme-challenge',
+        'PathPattern': '/.well-known/acme-challenge/*',
         'SmoothStreaming': False,
         'DefaultTTL': 0,
         'AllowedMethods': {
@@ -169,7 +169,7 @@ def addWellKnownBehavior(distribution_id):
 
         if distribution_config['CacheBehaviors']['Quantity'] > 0:
             for behavior in distribution_config['CacheBehaviors']['Items']:
-                if behavior['PathPattern'] == '/.well-known/acme-challenge':
+                if behavior['PathPattern'] == '/.well-known/acme-challenge/*':
                     has_behavior = True
                     if behavior['TargetOriginId'] != 'Certbot-Server':
                         behavior['TargetOriginId'] = 'Certbot-Server'
