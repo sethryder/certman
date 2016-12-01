@@ -261,7 +261,7 @@ def deleteCertificate(server_certificate_name):
         response = iam_client.delete_server_certificate(
             ServerCertificateName=server_certificate_name
         )
-        logMessage('Deleted ' + server_certificate_name)
+        logMessage('Deleted: ' + server_certificate_name)
         return True
     except botocore.exceptions.ClientError as e:
         logError('Unable to delete ' + server_certificate_name)
@@ -274,13 +274,14 @@ def pruneOldCertificates(domain_objects):
         lastest_certificate = getLastestCertificate(primary_domain)
         active_certificate = getActiveCertficateID(primary_domain)
 
-        for certificate in certificates:
-            if (certificate['ServerCertificateId'] != lastest_certificate['id'] and
-                certificate['ServerCertificateId'] != active_certificate):
-                logMessage('Pruning ' + certificate['ServerCertificateName'])
-                deleteCertificate(certificate['ServerCertificateName'])
-            else:
-                logMessage('In use or latest ' + certificate['ServerCertificateName'])
+        if certificates:
+            for certificate in certificates:
+                if (certificate['ServerCertificateId'] != lastest_certificate['id'] and
+                    certificate['ServerCertificateId'] != active_certificate):
+                    logMessage('Pruning: ' + certificate['ServerCertificateName'])
+                    deleteCertificate(certificate['ServerCertificateName'])
+                else:
+                    logMessage('In use or latest: ' + certificate['ServerCertificateName'])
 
 def updateDistributionCertificate(distribution_id, server_certificate_name):
     cloudfront_client = createAWSClient('cloudfront')
