@@ -13,13 +13,14 @@ domain_objects = loadDomainConfigs(config['domain_config_directory'])
 def certman():
     ran = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "achgrudw", [
+        opts, args = getopt.getopt(sys.argv[1:], "achgrudpw", [
           "all",
           "check-certificates",
           "generate-certificates",
           "renew-certificates",
           "upload-certificates",
           "update-cloudfront-distributions",
+          "prune-certificates",
           "list",
           "help"])
     except getopt.GetoptError, err:
@@ -46,6 +47,8 @@ def certman():
             uploadCloudFrontCertificates(domain_objects, config['certbot_certificate_path'])
         elif opt in ("-d", "--update-cloudfront-distributions"):
             updateCloudFrontDistributions(domain_objects, config['certbot_certificate_path'])
+        elif opt in ("-p", "--prune-certificates"):
+            pruneOldCertificates(domain_objects)
         elif opt in ("-w", "--add-well-known"):
             updateCloudFrontWellKnown(domain_objects, config['certbot_server'])
         elif opt in ("-l", "--list"):

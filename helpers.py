@@ -120,7 +120,7 @@ def usage():
     print '-u, --upload-certificates                Upload SSL certificates to CloudFront.'
     print '-d, --update-cloudfront-distributions    Update CloudFront distributions with the latest SSL certificate.'
     print '-w, --add-well-known                     Add ./well-known origin and behavior to CloudFront distribution.'
+    print '-p, --prune-certificates                 Prune old certificates that are no longer in use and are not the latest available.'
     print '-l, --list                               List certificates.'
     print '-q, --quiet                              No output, except for errors.'
     print ''
-

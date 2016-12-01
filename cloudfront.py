@@ -254,17 +254,33 @@ def uploadCertificate(primary_domain, certificate_path):
             logError("Certificate already exists")
         return False
 
-def deleteCertificate(server_certificate_id):
+def deleteCertificate(server_certificate_name):
     iam_client = createAWSClient('iam')
 
     try:
         response = iam_client.delete_server_certificate(
-            ServerCertificateName=server_certificate_id
+            ServerCertificateName=server_certificate_name
         )
+        logMessage('Deleted ' + server_certificate_name)
         return True
     except botocore.exceptions.ClientError as e:
+        logError('Unable to delete ' + server_certificate_name)
         return False
 
+
+def pruneOldCertificates(domain_objects):
+    for primary_domain, config in domain_objects.iteritems():
+        certificates = listCertificates(primary_domain)
+        lastest_certificate = getLastestCertificate(primary_domain)
+        active_certificate = getActiveCertficateID(primary_domain)
+
+        for certificate in certificates:
+            if (certificate['ServerCertificateId'] != lastest_certificate['id'] and
+                certificate['ServerCertificateId'] != active_certificate):
+                logMessage('Pruning ' + certificate['ServerCertificateName'])
+                deleteCertificate(certificate['ServerCertificateName'])
+            else:
+                logMessage('In use or latest ' + certificate['ServerCertificateName'])
 
 def updateDistributionCertificate(distribution_id, server_certificate_name):
     cloudfront_client = createAWSClient('cloudfront')
