@@ -1,15 +1,23 @@
-import boto3, botocore, datetime, hashlib, json, os, re, time, logging
+import boto3
+import botocore
+import datetime
+import hashlib
+import json
+import os
+import re
+import time
+import logging
 from helpers import *
 
-def uploadCloudFrontCertificates(domain_objects, certificate_path):
+def upload_cloudfront_certificates(domain_objects, certificate_path):
     logMessage("Starting CloudFront upload process")
     for primary_domain, config in domain_objects.iteritems():
         is_uploaded = False
         if 'distribution_id' in config:
             logMessage("%s: Starting upload check" % primary_domain)
             logMessage(primary_domain + ": Distribution_id set")
-            certificate_hash = generateCloudFrontHash(primary_domain, certificate_path)
-            uploaded_certificates = listCertificates(primary_domain)
+            certificate_hash = generate_cloudfront_hash(primary_domain, certificate_path)
+            uploaded_certificates = list_certificates(primary_domain)
 
             if uploaded_certificates:
                 logMessage(primary_domain + ": Checking if SSL has been uploaded")
@@ -18,38 +26,38 @@ def uploadCloudFrontCertificates(domain_objects, certificate_path):
 
                 if not uploaded:
                     logMessage(primary_domain + ": Uploading SSL")
-                    upload_result = uploadCertificate(primary_domain, certificate_path)
+                    upload_result = upload_certificate(primary_domain, certificate_path)
                 else:
                     logMessage(primary_domain + ": SSL already exists in IAM")
             else:
                 logMessage(primary_domain + ": Uploading SSL")
-                upload_result = uploadCertificate(primary_domain, certificate_path)
+                upload_result = upload_certificate(primary_domain, certificate_path)
             logMessage(primary_domain + ": Finished upload process")
     logMessage("Finished upload process")
 
     return True
 
-def updateCloudFrontDistributions(domain_objects, certificate_path):
+def update_cloudfront_distributions(domain_objects, certificate_path):
     for primary_domain, config in domain_objects.iteritems():
         if 'distribution_id' in config:
-            latest_certificate = getLastestCertificate(primary_domain)
-            active_certificate = getActiveCertficateID(config['distribution_id'])
+            latest_certificate = get_lastest_certificate(primary_domain)
+            active_certificate = get_active_certficate_id(config['distribution_id'])
 
             if latest_certificate['id'] != active_certificate:
-                updated = updateDistributionCertificate(config['distribution_id'], latest_certificate['name'])
+                updated = update_distribution_certificate(config['distribution_id'], latest_certificate['name'])
                 if not updated:
                     logError("Unable to update certificate for " + primary_domain)
     return True
 
-def updateCloudFrontWellKnown(domain_objects, ssl_host):
+def update_cloudfront_wellknown(domain_objects, ssl_host):
     for primary_domain, config in domain_objects.iteritems():
         if 'distribution_id' in config:
-            addWellKnownOrigin(config['distribution_id'], ssl_host)
-            addWellKnownBehavior(config['distribution_id'])
+            add_wellknown_origin(config['distribution_id'], ssl_host)
+            add_wellknown_behavior(config['distribution_id'])
     return True
 
-def addWellKnownOrigin(distribution_id, ssl_host):
-    cloudfront_client = createAWSClient('cloudfront')
+def add_wellknown_origin(distribution_id, ssl_host):
+    cloudfront_client = create_aws_client('cloudfront')
 
     ssl_origin = {
     	'OriginPath': '',
@@ -120,8 +128,8 @@ def addWellKnownOrigin(distribution_id, ssl_host):
             logMessage(distribution_id +": Certbot Server origin already exists")
             return True
 
-def addWellKnownBehavior(distribution_id):
-    cloudfront_client = createAWSClient('cloudfront')
+def add_wellknown_behavior(distribution_id):
+    cloudfront_client = create_aws_client('cloudfront')
 
     well_known_behavior = {
         'TrustedSigners': {
@@ -203,8 +211,8 @@ def addWellKnownBehavior(distribution_id):
 
 
 
-def listCertificates(primary_domain):
-    iam_client = createAWSClient('iam')
+def list_certificates(primary_domain):
+    iam_client = create_aws_client('iam')
     response = iam_client.list_server_certificates(
         PathPrefix='/cloudfront/' + primary_domain + '/'
     )
@@ -214,8 +222,8 @@ def listCertificates(primary_domain):
     else:
         return False
 
-def uploadCertificate(primary_domain, certificate_path):
-    iam_client = createAWSClient('iam')
+def upload_certificate(primary_domain, certificate_path):
+    iam_client = create_aws_client('iam')
     primary_path = certificate_path + '/' + primary_domain
 
     if os.path.isfile(primary_path + '/cert.pem'):
@@ -254,8 +262,8 @@ def uploadCertificate(primary_domain, certificate_path):
             logError("Certificate already exists")
         return False
 
-def deleteCertificate(server_certificate_name):
-    iam_client = createAWSClient('iam')
+def delete_certificate(server_certificate_name):
+    iam_client = create_aws_client('iam')
 
     try:
         response = iam_client.delete_server_certificate(
@@ -268,24 +276,24 @@ def deleteCertificate(server_certificate_name):
         return False
 
 
-def pruneOldCertificates(domain_objects):
+def prune_old_certificates(domain_objects):
     for primary_domain, config in domain_objects.iteritems():
-        certificates = listCertificates(primary_domain)
-        lastest_certificate = getLastestCertificate(primary_domain)
-        active_certificate = getActiveCertficateID(primary_domain)
+        certificates = list_certificates(primary_domain)
+        lastest_certificate = get_lastest_certificate(primary_domain)
+        active_certificate = get_active_certficate_id(primary_domain)
 
         if certificates:
             for certificate in certificates:
                 if (certificate['ServerCertificateId'] != lastest_certificate['id'] and
                     certificate['ServerCertificateId'] != active_certificate):
                     logMessage('Pruning: ' + certificate['ServerCertificateName'])
-                    deleteCertificate(certificate['ServerCertificateName'])
+                    delete_certificate(certificate['ServerCertificateName'])
                 else:
                     logMessage('In use or latest: ' + certificate['ServerCertificateName'])
 
-def updateDistributionCertificate(distribution_id, server_certificate_name):
-    cloudfront_client = createAWSClient('cloudfront')
-    iam_client = createAWSClient('iam')
+def update_distribution_certificate(distribution_id, server_certificate_name):
+    cloudfront_client = create_aws_client('cloudfront')
+    iam_client = create_aws_client('iam')
 
     try:
         certificate = iam_client.get_server_certificate(ServerCertificateName=server_certificate_name)
@@ -322,8 +330,8 @@ def updateDistributionCertificate(distribution_id, server_certificate_name):
 
     #TODO: verify that the domains match before enabling
 
-def getActiveCertficateID(distribution_id):
-    cloudfront_client = createAWSClient('cloudfront')
+def get_active_certficate_id(distribution_id):
+    cloudfront_client = create_aws_client('cloudfront')
 
     try:
         distribution = cloudfront_client.get_distribution(Id=distribution_id)
@@ -337,8 +345,8 @@ def getActiveCertficateID(distribution_id):
     else:
         return False
 
-def getCertificateName(primary_domain, certificate_id):
-    certificates = listCertificates(primary_domain)
+def get_certificate_name(primary_domain, certificate_id):
+    certificates = list_certificates(primary_domain)
     certificate_name = False
 
     if certificates:
@@ -348,9 +356,9 @@ def getCertificateName(primary_domain, certificate_id):
                 break
     return certificate_name
 
-def getLastestCertificate(primary_domain):
+def get_lastest_certificate(primary_domain):
     latest_time = 0
-    iam_client = createAWSClient('iam')
+    iam_client = create_aws_client('iam')
 
     response = iam_client.list_server_certificates(
         PathPrefix='/cloudfront/' + primary_domain + '/'

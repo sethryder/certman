@@ -1,10 +1,18 @@
-import boto3, yaml, os, sys, logging, hashlib, json
+import boto3
+import yaml
+import os
+import sys
+import logging
+import hashlib
+import json
 
-def createAWSClient(service):
+from logging import handlers
+
+def create_aws_client(service):
     aws_client = boto3.client(service)
     return aws_client
 
-def generateHash(primary_domain, additional_domains = None):
+def generate_hash(primary_domain, additional_domains = None):
     domain_object = {}
     domain_object['primary'] = primary_domain
     domain_object['additional_domains'] = additional_domains
@@ -12,7 +20,7 @@ def generateHash(primary_domain, additional_domains = None):
     md5Hash = hashlib.md5(json.dumps(domain_object, sort_keys=True)).hexdigest()
     return md5Hash
 
-def generateCloudFrontHash(primary_domain, certificate_path):
+def generate_cloudfront_hash(primary_domain, certificate_path):
     primary_path = certificate_path + '/' + primary_domain
 
     if os.path.isfile(primary_path + '/cert.pem'):
@@ -24,7 +32,7 @@ def generateCloudFrontHash(primary_domain, certificate_path):
         logError('Cert file does not exist.')
         return False
 
-def getSavedHash(primary_domain, hash_file_directory):
+def get_saved_hash(primary_domain, hash_file_directory):
     hash_file_path = hash_file_directory + '/' + primary_domain + '.hash'
 
     if os.path.isfile(hash_file_path):
@@ -34,7 +42,7 @@ def getSavedHash(primary_domain, hash_file_directory):
     else:
         return False
 
-def setSavedHash(primary_domain, hash_file_directory, hash):
+def set_saved_hash(primary_domain, hash_file_directory, hash):
     hash_file_path = hash_file_directory + '/' + primary_domain + '.hash'
 
     if os.path.isdir(hash_file_directory):
@@ -47,7 +55,7 @@ def setSavedHash(primary_domain, hash_file_directory, hash):
         logError("Hash file directory does not exist.")
     return False
 
-def getLastestCertificateTime(primary_domain, certificate_directory):
+def get_lastest_certificate_time(primary_domain, certificate_directory):
     certificate_file_path = certificate_directory + '/' + primary_domain + '/cert.pem'
 
     if os.path.isfile(certificate_file_path):
@@ -56,28 +64,7 @@ def getLastestCertificateTime(primary_domain, certificate_directory):
     else:
         return False
 
-
-def initLogger(error_log, general_log):
-    error_hdlr = logging.FileHandler(error_log)
-    hdlr = logging.FileHandler(general_log)
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-    hdlr.setFormatter(formatter)
-    error_hdlr.setFormatter(formatter)
-    logger.addHandler(hdlr)
-    error_logger.addHandler(error_hdlr)
-    error_logger.setLevel(logging.WARNING)
-    logger.setLevel(logging.DEBUG)
-
-def logError(error):
-    print error
-
-def logMessage(message):
-    print message
-
-def logVerbose(message):
-    print message
-
-def loadConfig(config_file):
+def load_config(config_file):
     if os.path.isfile(config_file):
         with open(config_file) as config_file:
             config = yaml.load(config_file)
@@ -86,7 +73,7 @@ def loadConfig(config_file):
         logError("Unable to open primary config file.")
         return False
 
-def loadDomainConfigs(config_directory):
+def load_domain_configs(config_directory):
     configs = {}
     if os.path.isdir(config_directory):
         os.chdir(config_directory)
@@ -109,6 +96,41 @@ def loadDomainConfigs(config_directory):
     else:
         logError("Config directory does not exist.")
     return configs
+
+def init_logger(log_file, email_errors, log_level="INFO"):
+    #logger
+    logger = logging.getLogger('certman')
+    logger.setLevel(getattr(logging, log_level))
+
+    #formatters
+    ch_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    eh_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    #console logger
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(ch_formatter)
+    logger.addHandler(ch)
+
+    if email_errors['enabled'] and email_errors['email']:
+        #email logger
+        eh = logging.handlers.SMTPHandler(mailhost=(email_errors['smtp_host'], email_errors['smtp_port']),
+                                            fromaddr=email_errors['from_address'],
+                                            toaddrs=email_errors['email'],
+                                            subject="Certman Error")
+        eh.setLevel(logging.WARNING)
+        logger.addHandler(eh)
+
+    return logger
+
+def logError(error):
+    print error
+
+def logMessage(message):
+    print message
+
+def logVerbose(message):
+    print message
 
 def usage():
     print 'Usage: certman.py (option)'

@@ -1,19 +1,21 @@
-import os, sys, logging
+import os
+import sys
+import logging
 from subprocess import Popen, PIPE
 from helpers import *
 
-def generateCertificates(config_object, domain_objects):
+def generate_certificates(config_object, domain_objects):
     certbot_binary_path = config_object['certbot_binary_path']
     certbot_arguments = config_object['certbot_arguments']
     hash_file_directory = config_object['hash_file_directory']
 
     for primary_domain, config in domain_objects.iteritems():
         if 'additional_domains' in config:
-            config_hash = generateHash(primary_domain, config['additional_domains'])
+            config_hash = generate_hash(primary_domain, config['additional_domains'])
         else:
-            config_hash = generateHash(primary_domain)
+            config_hash = generate_hash(primary_domain)
 
-        saved_hash = getSavedHash(primary_domain, hash_file_directory)
+        saved_hash = get_saved_hash(primary_domain, hash_file_directory)
 
         if saved_hash != config_hash:
             print primary_domain + ": Generating certificate(s)"
@@ -29,11 +31,11 @@ def generateCertificates(config_object, domain_objects):
             output = p.communicate()[0]
 
             if p.returncode != 0:
-                logError("Unable to generate certificate(s). Command:" + command)
+                logError(primary_domain + ": Unable to generate certificate(s). Command:" + command)
             else:
-                setSavedHash(primary_domain, hash_file_directory, config_hash)
+                set_saved_hash(primary_domain, hash_file_directory, config_hash)
 
-def renewCertificates(certbot_binary_path, certbot_arguments):
+def renew_certificates(certbot_binary_path, certbot_arguments):
 
     command = certbot_binary_path + ' renew ' + certbot_arguments
 

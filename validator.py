@@ -3,20 +3,20 @@ from string import Template
 from datetime import datetime
 from email.mime.text import MIMEText
 
-def checkCertificates(domains, config):
+def check_certificates(domains, config):
     results = {}
 
     for k,v in domains.iteritems():
         domain_results = {}
-        domain_results[k] = checkDomain(k)
+        domain_results[k] = check_domain(k)
         if 'additional_domains' in v:
             for additional_domain in v['additional_domains']:
-                domain_results[additional_domain] = checkDomain(additional_domain)
+                domain_results[additional_domain] = check_domain(additional_domain)
         results[k] = domain_results
 
     return results
 
-def checkDomain(domain):
+def check_domain(domain):
     url = 'https://' + domain
     try:
         r = requests.get(url, timeout=5)
@@ -30,7 +30,7 @@ def checkDomain(domain):
 
     return False #not sure how we would get here, but just in case.
 
-def buildCheckReport(results, template_directory):
+def build_check_report(results, template_directory):
     domain_reports = []
     problemed_ssls = []
     total_passed = 0
