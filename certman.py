@@ -2,14 +2,15 @@
 
 import getopt
 import sys
-import logging
+from log import init_logger
 from helpers import *
 from cloudfront import *
 from certbot import *
 from validator import *
 
-config_file = "/etc/certman.conf"
+config_file = "config/certman-sample.conf"
 config = load_config(config_file)
+logger = init_logger('test.log', config['email_errors'], config['log_level'])
 domain_objects = load_domain_configs(config['domain_config_directory'])
 
 def certman():

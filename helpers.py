@@ -6,7 +6,7 @@ import logging
 import hashlib
 import json
 
-from logging import handlers
+logger = logging.getLogger('certman')
 
 def create_aws_client(service):
     aws_client = boto3.client(service)
@@ -29,7 +29,7 @@ def generate_cloudfront_hash(primary_domain, certificate_path):
             cert_hash = hashlib.md5(cert).hexdigest()
         return cert_hash
     else:
-        logError('Cert file does not exist.')
+        logger.error('Cert file does not exist. \r\n Primary Domain: ' + primary_domain + '\r\n Path: ' + certificate_path)
         return False
 
 def get_saved_hash(primary_domain, hash_file_directory):
@@ -52,7 +52,7 @@ def set_saved_hash(primary_domain, hash_file_directory, hash):
         target.close()
         return True
     else:
-        logError("Hash file directory does not exist.")
+        logger.error('Hash directory: ' + hash_file_directory + ' does not exist!')
     return False
 
 def get_lastest_certificate_time(primary_domain, certificate_directory):
@@ -70,7 +70,7 @@ def load_config(config_file):
             config = yaml.load(config_file)
             return config
     else:
-        logError("Unable to open primary config file.")
+        print('Config file ' + config_file + ' does not exist!')
         return False
 
 def load_domain_configs(config_directory):
@@ -92,45 +92,10 @@ def load_domain_configs(config_directory):
                             additional_domains.append(domain)
                         configs[primary_domain]['additional_domains'] = additional_domains
                 else:
-                    logError("No primary domain set, invalid configuration file.")
+                    logger.error('No primary domain set, invalid configuration file.')
     else:
-        logError("Config directory does not exist.")
+        logger.error('Config directory ' + config_directory + ' does not exist!')
     return configs
-
-def init_logger(log_file, email_errors, log_level="INFO"):
-    #logger
-    logger = logging.getLogger('certman')
-    logger.setLevel(getattr(logging, log_level))
-
-    #formatters
-    ch_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    eh_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-    #console logger
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(ch_formatter)
-    logger.addHandler(ch)
-
-    if email_errors['enabled'] and email_errors['email']:
-        #email logger
-        eh = logging.handlers.SMTPHandler(mailhost=(email_errors['smtp_host'], email_errors['smtp_port']),
-                                            fromaddr=email_errors['from_address'],
-                                            toaddrs=email_errors['email'],
-                                            subject="Certman Error")
-        eh.setLevel(logging.WARNING)
-        logger.addHandler(eh)
-
-    return logger
-
-def logError(error):
-    print error
-
-def logMessage(message):
-    print message
-
-def logVerbose(message):
-    print message
 
 def usage():
     print 'Usage: certman.py (option)'

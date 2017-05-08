@@ -4,6 +4,8 @@ import logging
 from subprocess import Popen, PIPE
 from helpers import *
 
+logger = logging.getLogger('certman')
+
 def generate_certificates(config_object, domain_objects):
     certbot_binary_path = config_object['certbot_binary_path']
     certbot_arguments = config_object['certbot_arguments']
@@ -18,7 +20,7 @@ def generate_certificates(config_object, domain_objects):
         saved_hash = get_saved_hash(primary_domain, hash_file_directory)
 
         if saved_hash != config_hash:
-            print primary_domain + ": Generating certificate(s)"
+            logger.info(primary_domain + ': Generating certificate(s)')
 
             command = certbot_binary_path + ' certonly ' + certbot_arguments
             command = command + " -d " + primary_domain
@@ -31,7 +33,7 @@ def generate_certificates(config_object, domain_objects):
             output = p.communicate()[0]
 
             if p.returncode != 0:
-                logError(primary_domain + ": Unable to generate certificate(s). Command:" + command)
+                logger.error(primary_domain + ": Unable to generate certificate(s). \r\nCommand:" + command + "\r\nOutput:" + output)
             else:
                 set_saved_hash(primary_domain, hash_file_directory, config_hash)
 
@@ -43,6 +45,6 @@ def renew_certificates(certbot_binary_path, certbot_arguments):
     output = p.communicate()[0]
 
     if p.returncode != 0:
-        print "Something went wrong."
+        logger.error(output)
     else:
-        print "All good!"
+        logger.info('Certificate renewel finished')

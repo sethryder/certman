@@ -9,31 +9,33 @@ import time
 import logging
 from helpers import *
 
+logger = logging.getLogger('certman')
+
 def upload_cloudfront_certificates(domain_objects, certificate_path):
-    logMessage("Starting CloudFront upload process")
+    logger.info("Starting CloudFront upload process")
     for primary_domain, config in domain_objects.iteritems():
         is_uploaded = False
         if 'distribution_id' in config:
-            logMessage("%s: Starting upload check" % primary_domain)
-            logMessage(primary_domain + ": Distribution_id set")
+            logger.info("%s: Starting upload check" % primary_domain)
+            logger.info(primary_domain + ": Distribution_id set")
             certificate_hash = generate_cloudfront_hash(primary_domain, certificate_path)
             uploaded_certificates = list_certificates(primary_domain)
 
             if uploaded_certificates:
-                logMessage(primary_domain + ": Checking if SSL has been uploaded")
+                logger.info(primary_domain + ": Checking if SSL has been uploaded")
                 for uploaded_certificate in uploaded_certificates:
                     uploaded = re.search(certificate_hash, uploaded_certificate['ServerCertificateName'])
 
                 if not uploaded:
-                    logMessage(primary_domain + ": Uploading SSL")
+                    logger.info(primary_domain + ": Uploading SSL")
                     upload_result = upload_certificate(primary_domain, certificate_path)
                 else:
-                    logMessage(primary_domain + ": SSL already exists in IAM")
+                    logger.info(primary_domain + ": SSL already exists in IAM")
             else:
-                logMessage(primary_domain + ": Uploading SSL")
+                logger.info(primary_domain + ": Uploading SSL")
                 upload_result = upload_certificate(primary_domain, certificate_path)
-            logMessage(primary_domain + ": Finished upload process")
-    logMessage("Finished upload process")
+            logger.info(primary_domain + ": Finished upload process")
+    logger.info("Finished upload process")
 
     return True
 
@@ -46,7 +48,7 @@ def update_cloudfront_distributions(domain_objects, certificate_path):
             if latest_certificate['id'] != active_certificate:
                 updated = update_distribution_certificate(config['distribution_id'], latest_certificate['name'])
                 if not updated:
-                    logError("Unable to update certificate for " + primary_domain)
+                    logger.error("Unable to update certificate for " + primary_domain)
     return True
 
 def update_cloudfront_wellknown(domain_objects, ssl_host):
@@ -77,12 +79,12 @@ def add_wellknown_origin(distribution_id, ssl_host):
         'DomainName': ssl_host
     }
 
-    logMessage(distribution_id +": Checking for Certbot Server origin")
+    logger.info(distribution_id +": Checking for Certbot Server origin")
 
     try:
         distribution = cloudfront_client.get_distribution(Id=distribution_id)
     except botocore.exceptions.ClientError as e:
-        logError(e)
+        logger.error(e)
         return False
 
     if distribution['Distribution']:
@@ -93,7 +95,7 @@ def add_wellknown_origin(distribution_id, ssl_host):
             if origin['Id'] == 'Certbot-Server':
                 has_ssl_origin = True
                 if origin['DomainName'] != ssl_host:
-                    logMessage(distribution_id +": Certbot Server origin domain incorrect, updating")
+                    logger.info(distribution_id +": Certbot Server origin domain incorrect, updating")
                     origin['DomainName'] = ssl_host
                     try:
                         response = cloudfront_client.update_distribution(
@@ -101,14 +103,14 @@ def add_wellknown_origin(distribution_id, ssl_host):
                             Id=distribution_id,
                             IfMatch=distribution['ETag'],
                         )
-                        logMessage(distribution_id +": Certbot Server origin domain updated")
+                        logger.info(distribution_id +": Certbot Server origin domain updated")
                         return True
                     except botocore.exceptions.ClientError as e:
-                        logError(e)
+                        logger.error(e)
                         return False
 
         if has_ssl_origin == False:
-            logMessage(distribution_id +": Certbot Server origin does not exist, adding")
+            logger.info(distribution_id +": Certbot Server origin does not exist, adding")
             distribution_config['Origins']['Items'].append(ssl_origin)
             origin_count = len(distribution_config['Origins']['Items'])
             distribution_config['Origins']['Quantity'] = origin_count
@@ -119,13 +121,13 @@ def add_wellknown_origin(distribution_id, ssl_host):
                     Id=distribution_id,
                     IfMatch=distribution['ETag'],
                 )
-                logMessage(distribution_id +": Certbot Server origin added")
+                logger.info(distribution_id +": Certbot Server origin added")
                 return True
             except botocore.exceptions.ClientError as e:
-                logError(e)
+                logger.error(e)
                 return False
         else:
-            logMessage(distribution_id +": Certbot Server origin already exists")
+            logger.info(distribution_id +": Certbot Server origin already exists")
             return True
 
 def add_wellknown_behavior(distribution_id):
@@ -166,7 +168,7 @@ def add_wellknown_behavior(distribution_id):
     try:
         distribution = cloudfront_client.get_distribution(Id=distribution_id)
     except botocore.exceptions.ClientError as e:
-        logError(e)
+        logger.error(e)
         return False
 
     if distribution['Distribution']:
@@ -200,10 +202,10 @@ def add_wellknown_behavior(distribution_id):
                     Id=distribution_id,
                     IfMatch=distribution['ETag'],
                 )
-                logMessage(distribution_id +": Certbot Server behavior updated")
+                logger.info(distribution_id +": Certbot Server behavior updated")
                 return True
             except botocore.exceptions.ClientError as e:
-                logError(e)
+                logger.error(e)
                 return False
         return True
     else:
@@ -231,21 +233,21 @@ def upload_certificate(primary_domain, certificate_path):
             cert = cert_file.read()
             cert_hash = hashlib.md5(cert).hexdigest()
     else:
-        logError('Cert file does not exist.')
+        logger.error("Cert file does not exist for \r\nDomain: " + primary_domain + "\r\n Certificate Path: " + certificate_path)
         return False
 
     if os.path.isfile(primary_path + '/privkey.pem'):
         with open(certificate_path + '/' + primary_domain + '/privkey.pem') as cert_file:
             privkey = cert_file.read()
     else:
-        logError('Private key file does not exist.')
+        logger.error("Private key file does not exist for \r\nDomain: " + primary_domain + "\r\n Certificate Path: " + certificate_path)
         return False
 
     if os.path.isfile(primary_path + '/chain.pem'):
         with open(certificate_path + '/' + primary_domain + '/chain.pem') as cert_file:
             chain = cert_file.read()
     else:
-        logError('Chain file does not exist.')
+        logger.error("Chain file does not exist for \r\nDomain: " + primary_domain + "\r\n Certificate Path: " + certificate_path)
         return False
 
     try:
@@ -259,7 +261,7 @@ def upload_certificate(primary_domain, certificate_path):
         return response['ServerCertificateMetadata']['ServerCertificateId']
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == 'EntityAlreadyExists':
-            logError("Certificate already exists")
+            logger.error("Certificate already exists on IAM. \r\nCertificate Domain: " + primary_domain + "\r\nCertificate Path: " + certificate_path)
         return False
 
 def delete_certificate(server_certificate_name):
@@ -269,10 +271,10 @@ def delete_certificate(server_certificate_name):
         response = iam_client.delete_server_certificate(
             ServerCertificateName=server_certificate_name
         )
-        logMessage('Deleted: ' + server_certificate_name)
+        logger.info('Deleted: ' + server_certificate_name)
         return True
     except botocore.exceptions.ClientError as e:
-        logError('Unable to delete ' + server_certificate_name)
+        logger.error('Unable to delete ' + server_certificate_name)
         return False
 
 
@@ -286,10 +288,10 @@ def prune_old_certificates(domain_objects):
             for certificate in certificates:
                 if (certificate['ServerCertificateId'] != lastest_certificate['id'] and
                     certificate['ServerCertificateId'] != active_certificate):
-                    logMessage('Pruning: ' + certificate['ServerCertificateName'])
+                    logger.info('Pruning: ' + certificate['ServerCertificateName'])
                     delete_certificate(certificate['ServerCertificateName'])
                 else:
-                    logMessage('In use or latest: ' + certificate['ServerCertificateName'])
+                    logger.info('In use or latest: ' + certificate['ServerCertificateName'])
 
 def update_distribution_certificate(distribution_id, server_certificate_name):
     cloudfront_client = create_aws_client('cloudfront')
@@ -299,7 +301,7 @@ def update_distribution_certificate(distribution_id, server_certificate_name):
         certificate = iam_client.get_server_certificate(ServerCertificateName=server_certificate_name)
         distribution = cloudfront_client.get_distribution(Id=distribution_id)
     except botocore.exceptions.ClientError as e:
-        logError(e)
+        logger.error(e)
         return False
 
     certificate_id = certificate['ServerCertificate']['ServerCertificateMetadata']['ServerCertificateId']
@@ -325,7 +327,7 @@ def update_distribution_certificate(distribution_id, server_certificate_name):
         )
         return True
     except botocore.exceptions.ClientError as e:
-        logError(e)
+        logger.error(e)
         return False
 
     #TODO: verify that the domains match before enabling
