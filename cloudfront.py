@@ -261,7 +261,7 @@ def upload_certificate(primary_domain, certificate_path):
         return response['ServerCertificateMetadata']['ServerCertificateId']
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == 'EntityAlreadyExists':
-            logger.error("Certificate already exists on IAM. \r\nCertificate Domain: " + primary_domain + "\r\nCertificate Path: " + certificate_path)
+            logger.info("Certificate already exists on IAM. \r\nCertificate Domain: " + primary_domain + "\r\nCertificate Path: " + certificate_path)
         return False
 
 def delete_certificate(server_certificate_name):
