@@ -50,6 +50,8 @@ def update_cloudfront_distributions(domain_objects, certificate_path):
                     updated = update_distribution_certificate(config['distribution_id'], latest_certificate['name'])
                     if not updated:
                         logger.error("Unable to update certificate for " + primary_domain)
+                    else:
+                        logger.info("Updated active certificate for " + primary_domain)
             else:
                 logger.info("No certificate found for " + primary_domain)
     return True
