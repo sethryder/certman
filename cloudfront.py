@@ -147,7 +147,10 @@ def add_wellknown_behavior(distribution_id):
             'Cookies': {
                 'Forward': 'none'
             },
-            'QueryString': False
+            'QueryString': False,
+            "QueryStringCacheKeys": {
+                "Quantity": 0
+            }
         },
         'MaxTTL': 0,
         'PathPattern': '/.well-known/acme-challenge/*',
