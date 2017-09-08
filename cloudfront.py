@@ -164,6 +164,9 @@ def add_wellknown_behavior(distribution_id):
             },
             'Quantity': 2
         },
+        'LambdaFunctionAssociations': {
+            "Quantity": 0
+        }
         'MinTTL': 0,
         'Compress': False
     }
