@@ -45,10 +45,13 @@ def update_cloudfront_distributions(domain_objects, certificate_path):
             latest_certificate = get_lastest_certificate(primary_domain)
             active_certificate = get_active_certficate_id(config['distribution_id'])
 
-            if latest_certificate['id'] != active_certificate:
-                updated = update_distribution_certificate(config['distribution_id'], latest_certificate['name'])
-                if not updated:
-                    logger.error("Unable to update certificate for " + primary_domain)
+            if latest_certificate:
+                if latest_certificate['id'] != active_certificate:
+                    updated = update_distribution_certificate(config['distribution_id'], latest_certificate['name'])
+                    if not updated:
+                        logger.error("Unable to update certificate for " + primary_domain)
+            else:
+                logger.info("No certificate found for " + primary_domain)
     return True
 
 def update_cloudfront_wellknown(domain_objects, ssl_host):
