@@ -15,8 +15,9 @@ domain_objects = load_domain_configs(config['domain_config_directory'])
 
 def certman():
     ran = False
+    found_domain = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "achgrudpw", [
+        opts, args = getopt.getopt(sys.argv[1:], "achgrudepw", [
           "all",
           "check-certificates",
           "generate-certificates",
@@ -24,6 +25,7 @@ def certman():
           "upload-certificates",
           "update-cloudfront-distributions",
           "prune-certificates",
+          "generate-hash",
           "list",
           "help"])
     except getopt.GetoptError, err:
@@ -54,6 +56,21 @@ def certman():
             prune_old_certificates(domain_objects)
         elif opt in ("-w", "--add-well-known"):
             update_cloudfront_wellknown(domain_objects, config['certbot_server'])
+        elif opt in ("-e", "--generate-hash"):
+            if len(args) == 0:
+                usage()
+                sys.exit()
+            hash_file_directory = config['hash_file_directory']
+            for primary_domain, d_config in domain_objects.iteritems():
+                if primary_domain == args[0]:
+                    found_domain = True
+                    if 'additional_domains' in d_config:
+                        config_hash = generate_hash(primary_domain, d_config['additional_domains'])
+                    else:
+                        config_hash = generate_hash(primary_domain)
+                    set_saved_hash(primary_domain, hash_file_directory, config_hash)
+            if not found_domain:
+                print 'Could not find config for domain: ' + args[0]
         elif opt in ("-l", "--list"):
             for domain in domain_objects.keys():
                 certs_info = list_certificates(domain)
