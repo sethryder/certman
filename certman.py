@@ -28,8 +28,8 @@ def certman():
           "generate-hash",
           "list",
           "help"])
-    except getopt.GetoptError, err:
-        print str(err) # will print something like "option -z not recognized"
+    except getopt.GetoptError as err:
+        print(str(err)) # will print something like "option -z not recognized"
         usage()
         sys.exit(2)
     for opt, arg in opts:
@@ -43,7 +43,7 @@ def certman():
         elif opt in ("-c", "--check-certificates"):
             results = check_certificates(domain_objects, config)
             report = build_check_report(results, config['template_directory'])
-            print report
+            print(report)
         elif opt in ("-g", "--generate-certificates"):
             generate_certificates(config, domain_objects)
         elif opt in ("-r", "--renew-certificates"):
@@ -70,7 +70,7 @@ def certman():
                         config_hash = generate_hash(primary_domain)
                     set_saved_hash(primary_domain, hash_file_directory, config_hash)
             if not found_domain:
-                print 'Could not find config for domain: ' + args[0]
+                print('Could not find config for domain: ' + args[0])
         elif opt in ("-l", "--list"):
             for domain in domain_objects.keys():
                 certs_info = list_certificates(domain)
