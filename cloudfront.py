@@ -76,7 +76,8 @@ def add_wellknown_origin(distribution_id, ssl_host):
     		    'Quantity': 3
     		},
     		'HTTPSPort': 443,
-            'OriginReadTimeout': 30
+            'OriginReadTimeout': 30,
+            'OriginKeepaliveTimeout': 30,
     	},
         'CustomHeaders': {
     		'Quantity': 0
