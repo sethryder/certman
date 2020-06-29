@@ -78,7 +78,6 @@ def add_wellknown_origin(distribution_id, ssl_host):
     		'HTTPSPort': 443,
             'OriginReadTimeout': 30,
             'OriginKeepaliveTimeout': 30,
-            'FieldLevelEncryptionId': ''
     	},
         'CustomHeaders': {
     		'Quantity': 0
@@ -175,6 +174,7 @@ def add_wellknown_behavior(distribution_id):
         'LambdaFunctionAssociations': {
             "Quantity": 0
         },
+        'FieldLevelEncryptionId': '',
         'MinTTL': 0,
         'Compress': False
     }
