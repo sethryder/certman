@@ -11,7 +11,7 @@ def generate_certificates(config_object, domain_objects):
     certbot_arguments = config_object['certbot_arguments']
     hash_file_directory = config_object['hash_file_directory']
 
-    for primary_domain, config in domain_objects.iteritems():
+    for primary_domain, config in domain_objects.items():
         if 'additional_domains' in config:
             config_hash = generate_hash(primary_domain, config['additional_domains'])
         else:

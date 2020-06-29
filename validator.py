@@ -6,7 +6,7 @@ from email.mime.text import MIMEText
 def check_certificates(domains, config):
     results = {}
 
-    for k,v in domains.iteritems():
+    for k,v in domains.items():
         domain_results = {}
         domain_results[k] = check_domain(k)
         if 'additional_domains' in v:
@@ -42,10 +42,10 @@ def build_check_report(results, template_directory):
     filein = open('domain_report.tpl')
     src = Template(filein.read())
 
-    for k,v in results.iteritems():
+    for k,v in results.items():
         single_domain_report = []
         primary_domain = k
-        for domain,result in v.iteritems():
+        for domain,result in v.items():
             if result == True:
                 total_passed = total_passed + 1
                 single_domain_report.append("- " + domain + " - Passed")

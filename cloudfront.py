@@ -13,7 +13,7 @@ logger = logging.getLogger('certman')
 
 def upload_cloudfront_certificates(domain_objects, certificate_path):
     logger.info("Starting CloudFront upload process")
-    for primary_domain, config in domain_objects.iteritems():
+    for primary_domain, config in domain_objects.items():
         is_uploaded = False
         if 'distribution_id' in config:
             logger.info("%s: Starting upload check" % primary_domain)
@@ -40,7 +40,7 @@ def upload_cloudfront_certificates(domain_objects, certificate_path):
     return True
 
 def update_cloudfront_distributions(domain_objects, certificate_path):
-    for primary_domain, config in domain_objects.iteritems():
+    for primary_domain, config in domain_objects.items():
         if 'distribution_id' in config:
             latest_certificate = get_lastest_certificate(primary_domain)
             active_certificate = get_active_certficate_id(config['distribution_id'])
@@ -57,7 +57,7 @@ def update_cloudfront_distributions(domain_objects, certificate_path):
     return True
 
 def update_cloudfront_wellknown(domain_objects, ssl_host):
-    for primary_domain, config in domain_objects.iteritems():
+    for primary_domain, config in domain_objects.items():
         if 'distribution_id' in config:
             add_wellknown_origin(config['distribution_id'], ssl_host)
             add_wellknown_behavior(config['distribution_id'])
@@ -290,7 +290,7 @@ def delete_certificate(server_certificate_name):
 
 
 def prune_old_certificates(domain_objects):
-    for primary_domain, config in domain_objects.iteritems():
+    for primary_domain, config in domain_objects.items():
         certificates = list_certificates(primary_domain)
         lastest_certificate = get_lastest_certificate(primary_domain)
         active_certificate = get_active_certficate_id(primary_domain)

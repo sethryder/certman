@@ -61,7 +61,7 @@ def certman():
                 usage()
                 sys.exit()
             hash_file_directory = config['hash_file_directory']
-            for primary_domain, d_config in domain_objects.iteritems():
+            for primary_domain, d_config in domain_objects.items():
                 if primary_domain == args[0]:
                     found_domain = True
                     if 'additional_domains' in d_config:
@@ -76,7 +76,7 @@ def certman():
                 certs_info = list_certificates(domain)
                 print("%s: " % domain)
                 for i in certs_info:
-                    for k,v in i.iteritems():
+                    for k,v in i.items():
                        print("  %s: %s" % (k,v))
         elif opt in ("-h", "--help"):
             usage()
