@@ -75,7 +75,8 @@ def add_wellknown_origin(distribution_id, ssl_host):
     		    'Items': ['TLSv1', 'TLSv1.1', 'TLSv1.2'],
     		    'Quantity': 3
     		},
-    		'HTTPSPort': 443
+    		'HTTPSPort': 443,
+            'OriginReadTimeout': 30
     	},
         'CustomHeaders': {
     		'Quantity': 0
