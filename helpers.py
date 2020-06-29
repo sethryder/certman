@@ -17,7 +17,7 @@ def generate_hash(primary_domain, additional_domains = None):
     domain_object['primary'] = primary_domain
     domain_object['additional_domains'] = additional_domains
 
-    md5Hash = hashlib.md5(json.dumps(domain_object, sort_keys=True)).hexdigest()
+    md5Hash = hashlib.md5(json.dumps(domain_object, sort_keys=True).encode('utf-8')).hexdigest()
     return md5Hash
 
 def generate_cloudfront_hash(primary_domain, certificate_path):
@@ -26,7 +26,7 @@ def generate_cloudfront_hash(primary_domain, certificate_path):
     if os.path.isfile(primary_path + '/cert.pem'):
         with open(primary_path + '/cert.pem') as cert_file:
             cert = cert_file.read()
-            cert_hash = hashlib.md5(cert).hexdigest()
+            cert_hash = hashlib.md5(cert.encode('utf-8')).hexdigest()
         return cert_hash
     else:
         logger.error('Cert file does not exist. \r\n Primary Domain: ' + primary_domain + '\r\n Path: ' + certificate_path)

@@ -245,7 +245,7 @@ def upload_certificate(primary_domain, certificate_path):
     if os.path.isfile(primary_path + '/cert.pem'):
         with open(certificate_path + '/' + primary_domain + '/cert.pem') as cert_file:
             cert = cert_file.read()
-            cert_hash = hashlib.md5(cert).hexdigest()
+            cert_hash = hashlib.md5(cert.encode('utf-8')).hexdigest()
     else:
         logger.error("Cert file does not exist for \r\nDomain: " + primary_domain + "\r\n Certificate Path: " + certificate_path)
         return False
