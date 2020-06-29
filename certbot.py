@@ -33,7 +33,7 @@ def generate_certificates(config_object, domain_objects):
             output = p.communicate()[0]
 
             if p.returncode != 0:
-                logger.error(primary_domain + ": Unable to generate certificate(s). \r\nCommand:" + command + "\r\nOutput:" + output)
+                logger.error(primary_domain + ": Unable to generate certificate(s). \r\nCommand:" + command + "\r\nOutput:" + output.decode('utf-8'))
             else:
                 set_saved_hash(primary_domain, hash_file_directory, config_hash)
 

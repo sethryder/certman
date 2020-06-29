@@ -383,7 +383,7 @@ def get_lastest_certificate(primary_domain):
     if response['ServerCertificateMetadataList']:
         for certificate in response['ServerCertificateMetadataList']:
             certificate_time = certificate['Expiration'].strftime("%s")
-            if certificate_time > latest_time:
+            if int(certificate_time) > int(latest_time):
                 latest_time = certificate_time
                 latest_id = certificate['ServerCertificateId']
                 latest_name = certificate['ServerCertificateName']
