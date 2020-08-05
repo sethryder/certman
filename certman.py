@@ -1,5 +1,6 @@
 #!/usr/bin/python -W ignore::DeprecationWarning
 
+import config
 import getopt
 import sys
 from log import init_logger
@@ -8,10 +9,8 @@ from cloudfront import *
 from certbot import *
 from validator import *
 
-config_file = "config/certman-sample.conf"
-config = load_config(config_file)
-logger = init_logger('test.log', config['email_errors'], config['log_level'])
-domain_objects = load_domain_configs(config['domain_config_directory'])
+logger = init_logger('test.log', config.c['email_errors'], config.c['log_level'])
+domain_objects = load_domain_configs(config.c['domain_config_directory'])
 
 def certman():
     ran = False
@@ -35,32 +34,32 @@ def certman():
     for opt, arg in opts:
         ran = True
         if opt in ("-a", "--all"):
-            update_cloudfront_wellknown(domain_objects, config['certbot_server'])
+            update_cloudfront_wellknown(domain_objects, config.c['certbot_server'])
             generate_certificates(config, domain_objects)
-            renew_certificates(config['certbot_binary_path'], config['certbot_arguments'])
-            upload_cloudfront_certificates(domain_objects, config['certbot_certificate_path'])
-            update_cloudfront_distributions(domain_objects, config['certbot_certificate_path'])
+            renew_certificates(config.c['certbot_binary_path'], config.c['certbot_arguments'])
+            upload_cloudfront_certificates(domain_objects, config.c['certbot_certificate_path'])
+            update_cloudfront_distributions(domain_objects, config.c['certbot_certificate_path'])
         elif opt in ("-c", "--check-certificates"):
-            results = check_certificates(domain_objects, config)
-            report = build_check_report(results, config['template_directory'])
+            results = check_certificates(domain_objects, config.c)
+            report = build_check_report(results, config.c['template_directory'])
             print(report)
         elif opt in ("-g", "--generate-certificates"):
-            generate_certificates(config, domain_objects)
+            generate_certificates(config.c, domain_objects)
         elif opt in ("-r", "--renew-certificates"):
-            renew_certificates(config['certbot_binary_path'], config['certbot_arguments'])
+            renew_certificates(config.c['certbot_binary_path'], config.c['certbot_arguments'])
         elif opt in ("-u", "--upload-certificates"):
-            upload_cloudfront_certificates(domain_objects, config['certbot_certificate_path'])
+            upload_cloudfront_certificates(domain_objects, config.c['certbot_certificate_path'])
         elif opt in ("-d", "--update-cloudfront-distributions"):
-            update_cloudfront_distributions(domain_objects, config['certbot_certificate_path'])
+            update_cloudfront_distributions(domain_objects, config.c['certbot_certificate_path'])
         elif opt in ("-p", "--prune-certificates"):
             prune_old_certificates(domain_objects)
         elif opt in ("-w", "--add-well-known"):
-            update_cloudfront_wellknown(domain_objects, config['certbot_server'])
+            update_cloudfront_wellknown(domain_objects, config.c['certbot_server'])
         elif opt in ("-e", "--generate-hash"):
             if len(args) == 0:
                 usage()
                 sys.exit()
-            hash_file_directory = config['hash_file_directory']
+            hash_file_directory = config.c['hash_file_directory']
             for primary_domain, d_config in domain_objects.items():
                 if primary_domain == args[0]:
                     found_domain = True

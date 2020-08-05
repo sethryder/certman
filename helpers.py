@@ -1,4 +1,5 @@
 import boto3
+import config
 import yaml
 import os
 import sys
@@ -6,10 +7,11 @@ import logging
 import hashlib
 import json
 
+
 logger = logging.getLogger('certman')
 
 def create_aws_client(service):
-    aws_client = boto3.client(service)
+    aws_client = boto3.client(service, aws_access_key_id=config.c['aws_access_key'], aws_secret_access_key=config.c['aws_secret_key'])
     return aws_client
 
 def generate_hash(primary_domain, additional_domains = None):
@@ -62,15 +64,6 @@ def get_lastest_certificate_time(primary_domain, certificate_directory):
         modified_time = os.path.getmtime(certificate_file_path)
         return modified_time
     else:
-        return False
-
-def load_config(config_file):
-    if os.path.isfile(config_file):
-        with open(config_file) as config_file:
-            config = yaml.load(config_file, Loader=yaml.FullLoader)
-            return config
-    else:
-        print('Config file ' + config_file + ' does not exist!')
         return False
 
 def load_domain_configs(config_directory):
